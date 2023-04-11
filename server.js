@@ -1,15 +1,26 @@
+const http = require('http');
 const https = require('https');
 const fs = require('fs');
+require('dotenv').config();
 
 const app = require('./app');
 
-const httpsOptions = {
-    key: fs.readFileSync('./ssl/key.pem'),
-    cert: fs.readFileSync('./ssl/cert.pem')
+let PROTOCOL;
+let server;
+const PORT = process.env.PORT || 3000;
+
+if (process.env.NODE_ENV === 'production') {
+    const httpsOptions = {
+        key: fs.readFileSync('./ssl/key.pem'),
+        cert: fs.readFileSync('./ssl/cert.pem')
+    }
+    server = https.createServer(httpsOptions, app);
+    PROTOCOL = 'https';
+} else {
+    PROTOCOL = 'http';
+    server = http.createServer(app);
 }
 
-const server = https.createServer(httpsOptions, app);
-
-const PORT = 3000;
-
-server.listen(PORT, console.log(`server listening to port ${PORT}`));
+server.listen(PORT, () => {
+    console.log(`Server listening on ${PROTOCOL}://localhost:${PORT}`);
+});
